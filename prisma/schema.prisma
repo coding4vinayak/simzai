@@ -1,0 +1,177 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Customer {
+  id           String        @id @default(cuid())
+  name         String
+  email        String?
+  phone        String?
+  mobile       String?
+  company      String?
+  address      String?
+  website      String?
+  industry     String?
+  size         String?
+  revenue      Float?
+  tags         String?
+  notes        String?
+  status       String        @default("lead")
+  source       String?
+  value        Float?
+  priority     String?
+  assignedTo   String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  @@map("customers")
+}
+
+model Interaction {
+  id           String    @id @default(cuid())
+  customerId   String
+  type         String
+  title        String?
+  message      String
+  direction    String?
+  nextFollowup DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@map("interactions")
+}
+
+model Task {
+  id         String   @id @default(cuid())
+  customerId String
+  type       String
+  status     String   @default("pending")
+  runAt      DateTime
+  createdAt  DateTime @default(now())
+
+  @@map("tasks")
+}
+
+model Invoice {
+  id         String   @id @default(cuid())
+  customerId String?
+  userId     String?
+  number     String   @unique
+  amount     Float
+  dueDate    DateTime
+  status     String   @default("unpaid")
+  pdfUrl     String?
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@map("invoices")
+}
+
+model Agent {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  name          String
+  type          String
+  description   String?
+  capabilities  String?
+  config        String?
+  isActive      Boolean  @default(true)
+  lastSeen      DateTime?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("agents")
+}
+
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String
+  password  String
+  role      String    @default("user")
+  avatar    String?
+  phone     String?
+  mobile    String?
+  address   String?
+  bio       String?
+  isActive  Boolean   @default(true)
+  lastLogin DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("users")
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  @@map("sessions")
+}
+
+model ApiKey {
+  id          String    @id @default(cuid())
+  userId      String
+  name        String
+  key         String    @unique
+  permissions String
+  isActive    Boolean   @default(true)
+  lastUsed    DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("api_keys")
+}
+
+model Webhook {
+  id          String    @id @default(cuid())
+  name        String
+  url         String
+  type        String    @default("api")
+  events      String
+  secret      String?
+  isActive    Boolean   @default(true)
+  lastTrigger DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("webhooks")
+}
+
+model ImportExport {
+  id        String   @id @default(cuid())
+  type      String
+  status    String   @default("pending")
+  fileType  String
+  fileName  String
+  filePath  String?
+  records   Int      @default(0)
+  processed Int      @default(0)
+  errors    String?
+  createdBy String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("import_exports")
+}
+
+model Settings {
+  id          String   @id @default(cuid())
+  key         String   @unique
+  value       String
+  description String?
+  category    String
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("settings")
+}
