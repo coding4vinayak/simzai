@@ -49,12 +49,25 @@ http://localhost:3000/
 - **Webhooks**: Real-time data synchronization
 - **Import/Export**: CSV and JSON data import/export
 - **Settings**: Comprehensive system configuration
+- **Backup & Redundancy**: Automated and manual backup with integrity monitoring
+  - **Database Backups**: Full database backup and restore functionality
+  - **Data Integrity Checks**: Regular checksum validation of critical data
+  - **Redundancy Monitoring**: Real-time status of backup and data integrity
+  - **Automated Scheduling**: Configurable backup scheduling with retention policies
 
 ### Security Features
-- **JWT Authentication**: Secure token-based authentication
-- **Role-Based Access**: Admin vs User permissions
-- **Password Hashing**: bcrypt for secure password storage
-- **Session Management**: Secure session handling
+- **JWT Authentication**: Secure token-based authentication with database session validation
+- **Rate Limiting**: Protection against brute force attacks (max 5 login attempts per 15 min)
+- **Role-Based Access**: Admin vs User permissions with proper authorization
+- **Password Security**: bcrypt for secure password hashing with strength validation (8+ chars, upper/lower/digit)
+- **Session Management**: Database-backed sessions with expiration validation
+- **API Key Security**: API keys stored with bcrypt hashing and efficient lookup mechanism
+- **Default Password Protection**: Forced password change on first login with default credentials
+- **User Enumeration Prevention**: Timing attack protection using consistent bcrypt operations
+- **Security Headers**: CSP, HSTS, X-Frame-Options, X-Content-Type-Options via middleware
+- **CSRF Protection**: Stateless token validation for form submissions
+- **Secure Password Change**: Current password verification required for password updates
+- **Input Validation**: Comprehensive Zod schema validation on all endpoints
 
 ## 🏗️ Architecture
 
@@ -76,7 +89,8 @@ http://localhost:3000/
 - **Invoices**: Billing and payment tracking
 - **Agent Logs**: AI agent activity tracking
 - **Users**: User management with roles
-- **API Keys**: Secure API access management
+- **API Keys**: Secure API access management with bcrypt hashing and lookupKey for efficient retrieval
+- **Sessions**: Database-backed session management with expiration validation
 - **Webhooks**: Real-time data synchronization
 - **Settings**: System configuration storage
 - **Import/Export**: Data migration history
@@ -102,6 +116,16 @@ http://localhost:3000/
 - `POST /api/auth/register` - User registration
 - `POST /api/auth/logout` - User logout
 - `GET /api/auth/me` - Get current user info
+
+### Backup & Redundancy
+- `GET /api/backup` - Get backup service status and list jobs
+- `POST /api/backup` - Create new database backup
+- `PUT /api/backup` - Restore from backup file
+- `GET /api/backup?action=list` - List all backup files
+- `GET /api/backup?action=download&name=filename` - Download backup file
+- `GET /api/backup?action=jobs` - List backup jobs
+- `GET /api/monitor/redundancy` - Get redundancy status and integrity checks
+- `POST /api/monitor/redundancy` - Perform manual data integrity check
 
 ### Customers
 - `GET /api/customers` - List customers with pagination
