@@ -3,7 +3,7 @@ import { db } from '@/lib/db';
 import { sign } from 'jsonwebtoken';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
-import { getToken, verifyToken } from '@/lib/auth';
+import { getToken, validateToken } from '@/lib/auth';
 
 // Schema for creating API keys
 const createApiKeySchema = z.object({
@@ -14,10 +14,7 @@ const createApiKeySchema = z.object({
 
 // Helper function to get authenticated user
 async function getAuthenticatedUser(request: NextRequest) {
-  const token = getToken(request);
-  if (!token) return null;
-
-  const decoded = verifyToken(token);
+  const decoded = await validateToken(request);
   if (!decoded) return null;
 
   const user = await db.user.findUnique({

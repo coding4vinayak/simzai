@@ -1,16 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { getToken, verifyToken } from '@/lib/auth';
+import { getToken, validateToken } from '@/lib/auth';
 import { z } from 'zod';
 import { randomBytes } from 'crypto';
 import bcrypt from 'bcryptjs';
 
 // Middleware to get authenticated user
 async function getAuthUser(request: NextRequest) {
-  const token = getToken(request);
-  if (!token) return null;
-
-  const decoded = verifyToken(token);
+  const decoded = await validateToken(request);
   if (!decoded) return null;
 
   const user = await db.user.findUnique({
