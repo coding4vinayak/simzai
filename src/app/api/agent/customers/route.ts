@@ -117,7 +117,14 @@ export async function GET(request: NextRequest) {
     // Parse tags JSON for response
     const customersWithParsedTags = customers.map(customer => ({
       ...customer,
-      tags: customer.tags ? JSON.parse(customer.tags) : [],
+      tags: customer.tags ? (() => {
+        try {
+          return JSON.parse(customer.tags);
+        } catch (e) {
+          console.error('Error parsing customer tags:', e);
+          return [];
+        }
+      })() : [],
     }));
 
     return NextResponse.json({

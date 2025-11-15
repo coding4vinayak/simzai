@@ -170,7 +170,10 @@ export default function AgentDashboard() {
                       >
                         <div className="flex items-center gap-4">
                           <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
-                            {getAgentTypeIcon(agent.type)}
+                            {(() => {
+                              const IconComponent = getAgentTypeIcon(agent.type);
+                              return <IconComponent className="h-6 w-6" />;
+                            })()}
                           </div>
                           <div>
                             <h4 className="font-semibold">{agent.name}</h4>
@@ -319,7 +322,10 @@ export default function AgentDashboard() {
                     <div>
                       <Label>Agent Type</Label>
                       <div className="flex items-center gap-2">
-                        {getAgentTypeIcon(selectedAgent.type)}
+                        {(() => {
+                          const IconComponent = getAgentTypeIcon(selectedAgent.type);
+                          return <IconComponent className="h-5 w-5 mr-2" />;
+                        })()}
                         <span className="font-medium">{selectedAgent.type}</span>
                         <Badge className={getAgentTypeColor(selectedAgent.type)}>
                           {selectedAgent.type}

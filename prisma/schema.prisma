@@ -3,7 +3,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
@@ -72,17 +72,20 @@ model Invoice {
 }
 
 model Agent {
-  id           String    @id @default(cuid())
-  userId       String    @unique
+  id           String          @id @default(cuid())
+  userId       String
   name         String
   type         String
   description  String?
   capabilities String?
   config       String?
-  isActive     Boolean   @default(true)
+  isActive     Boolean         @default(true)
   lastSeen     DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  activities   AgentActivity[]
+  user         User            @relation(fields: [userId], references: [id])
+  apiKeys      ApiKey[]
 
   @@map("agents")
 }
@@ -102,6 +105,8 @@ model User {
   lastLogin DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  agents    Agent[]
+  apiKeys   ApiKey[]
 
   @@map("users")
 }
@@ -119,6 +124,7 @@ model Session {
 model ApiKey {
   id          String    @id @default(cuid())
   userId      String
+  agentId     String?
   name        String
   key         String    @unique
   permissions String
@@ -127,6 +133,8 @@ model ApiKey {
   expiresAt   DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  agent       Agent?    @relation(fields: [agentId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
 
   @@map("api_keys")
 }
@@ -161,6 +169,21 @@ model ImportExport {
   updatedAt DateTime @updatedAt
 
   @@map("import_exports")
+}
+
+model AgentActivity {
+  id        String   @id @default(cuid())
+  agentId   String
+  type      String
+  action    String
+  data      String?
+  status    String
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+  agent     Agent    @relation(fields: [agentId], references: [id])
+
+  @@map("agent_activities")
 }
 
 model Settings {

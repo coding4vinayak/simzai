@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getToken, verifyToken } from '@/lib/auth';
 import { z } from 'zod';
+import { randomBytes } from 'crypto';
 
 // Middleware to get authenticated user
 async function getAuthUser(request: NextRequest) {
@@ -83,8 +84,22 @@ export async function GET(request: NextRequest) {
         name: agent.name,
         type: agent.type,
         description: agent.description,
-        capabilities: agent.capabilities ? JSON.parse(agent.capabilities) : [],
-        config: agent.config ? JSON.parse(agent.config) : {},
+        capabilities: agent.capabilities ? (() => {
+          try {
+            return JSON.parse(agent.capabilities);
+          } catch (e) {
+            console.error('Error parsing agent capabilities:', e);
+            return [];
+          }
+        })() : [],
+        config: agent.config ? (() => {
+          try {
+            return JSON.parse(agent.config);
+          } catch (e) {
+            console.error('Error parsing agent config:', e);
+            return {};
+          }
+        })() : {},
         isActive: agent.isActive,
         lastSeen: agent.lastSeen,
         createdAt: agent.createdAt,
@@ -118,6 +133,7 @@ export async function POST(request: NextRequest) {
     const newApiKey = await db.apiKey.create({
       data: {
         userId: agent.user.id,
+        agentId: agent.id, // Associate the API key with the specific agent
         name: name || `Agent API Key - ${new Date().toISOString()}`,
         key: apiKey,
         permissions: permissions ? JSON.stringify(permissions) : JSON.stringify(['read', 'write']),
@@ -143,7 +159,14 @@ export async function POST(request: NextRequest) {
         id: newApiKey.id,
         name: newApiKey.name,
         key: newApiKey.key,
-        permissions: JSON.parse(newApiKey.permissions),
+        permissions: (() => {
+          try {
+            return JSON.parse(newApiKey.permissions);
+          } catch (e) {
+            console.error('Error parsing API key permissions:', e);
+            return [];
+          }
+        })(),
         expiresAt: newApiKey.expiresAt,
         createdAt: newApiKey.createdAt,
       },

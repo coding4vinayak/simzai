@@ -33,7 +33,14 @@ export async function GET(request: NextRequest) {
     // Parse payload JSON
     const logsWithParsedPayload = logs.map(log => ({
       ...log,
-      payload: log.payload ? JSON.parse(log.payload) : null,
+      payload: log.payload ? (() => {
+        try {
+          return JSON.parse(log.payload);
+        } catch (e) {
+          console.error('Error parsing payload:', e);
+          return null; // or return the original payload string if you prefer
+        }
+      })() : null,
     }));
 
     return NextResponse.json({
@@ -78,7 +85,14 @@ export async function POST(request: NextRequest) {
     // Parse payload for response
     const logWithParsedPayload = {
       ...log,
-      payload: log.payload ? JSON.parse(log.payload) : null,
+      payload: log.payload ? (() => {
+        try {
+          return JSON.parse(log.payload);
+        } catch (e) {
+          console.error('Error parsing payload:', e);
+          return null; // or return the original payload string if you prefer
+        }
+      })() : null,
     };
 
     return NextResponse.json(logWithParsedPayload, { status: 201 });

@@ -77,7 +77,14 @@ export async function POST(request: NextRequest) {
         id: newApiKey.id,
         name: newApiKey.name,
         key: apiKey, // This is the actual API key the user needs
-        permissions: JSON.parse(newApiKey.permissions),
+        permissions: (() => {
+          try {
+            return JSON.parse(newApiKey.permissions);
+          } catch (e) {
+            console.error('Error parsing API key permissions:', e);
+            return [];
+          }
+        })(),
         isActive: newApiKey.isActive,
         createdAt: newApiKey.createdAt,
         expiresAt: newApiKey.expiresAt,

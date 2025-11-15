@@ -135,9 +135,9 @@ export async function DELETE(request: NextRequest) {
       );
     }
     
-    // Delete associated API keys first
+    // Delete associated API keys first (only those specifically assigned to this agent)
     await db.apiKey.deleteMany({
-      where: { userId: agentId },
+      where: { agentId: agentId },
     });
     
     // Then delete the agent
