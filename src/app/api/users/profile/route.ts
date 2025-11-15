@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { getToken, verifyToken } from '@/lib/auth';
+import bcrypt from 'bcryptjs';
 
 // Middleware to get authenticated user
 async function getAuthUser(request: NextRequest) {
@@ -74,8 +75,81 @@ export async function PUT(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { name, phone, mobile, address, bio, avatar } = body;
+    const { name, phone, mobile, address, bio, avatar, currentPassword, newPassword } = body;
 
+    // If changing password, validate current password
+    if (newPassword) {
+      if (!currentPassword) {
+        return NextResponse.json(
+          { error: 'Current password is required to change password' },
+          { status: 400 }
+        );
+      }
+
+      // Get current user to verify password
+      const currentUser = await db.user.findUnique({
+        where: { id: authUser.userId },
+        select: { password: true }
+      });
+
+      if (!currentUser) {
+        return NextResponse.json(
+          { error: 'User not found' },
+          { status: 404 }
+        );
+      }
+
+      const isCurrentPasswordValid = await bcrypt.compare(currentPassword, currentUser.password);
+      if (!isCurrentPasswordValid) {
+        return NextResponse.json(
+          { error: 'Current password is incorrect' },
+          { status: 400 }
+        );
+      }
+
+      // Validate new password strength
+      if (newPassword.length < 8) {
+        return NextResponse.json(
+          { error: 'New password must be at least 8 characters long' },
+          { status: 400 }
+        );
+      }
+
+      // Hash the new password
+      const hashedNewPassword = await bcrypt.hash(newPassword, 12);
+
+      // Update user with new password
+      const updatedUser = await db.user.update({
+        where: { id: authUser.userId },
+        data: {
+          ...(name && { name }),
+          ...(phone !== undefined && { phone }),
+          ...(mobile !== undefined && { mobile }),
+          ...(address !== undefined && { address }),
+          ...(bio !== undefined && { bio }),
+          ...(avatar !== undefined && { avatar }),
+          password: hashedNewPassword,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          phone: true,
+          mobile: true,
+          address: true,
+          bio: true,
+          avatar: true,
+          isActive: true,
+          lastLogin: true,
+          createdAt: true,
+        },
+      });
+
+      return NextResponse.json(updatedUser);
+    }
+
+    // Update profile without password change
     const updatedUser = await db.user.update({
       where: { id: authUser.userId },
       data: {

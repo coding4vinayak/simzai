@@ -126,7 +126,8 @@ model ApiKey {
   userId      String
   agentId     String?
   name        String
-  key         String    @unique
+  key         String    // This will store the hashed key (removed @unique)
+  lookupKey   String    @unique // This will store a deterministic lookup value for efficient retrieval
   permissions String
   isActive    Boolean   @default(true)
   lastUsed    DateTime?

@@ -44,6 +44,23 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if this is using default credentials that need to be changed
+    if (user.email === 'admin@simplecrm.com') {
+      // Check if the password hash matches the default admin password hash
+      // Default password is 'admin123' which should be hashed
+      const isDefaultPassword = await bcrypt.compare('admin123', user.password);
+      if (isDefaultPassword) {
+        return NextResponse.json(
+          {
+            error: 'Default password detected. Please change your password immediately.',
+            requiresPasswordChange: true,
+            userId: user.id
+          },
+          { status: 400 }
+        );
+      }
+    }
+
     // Generate JWT token
     const token = sign(
       { 

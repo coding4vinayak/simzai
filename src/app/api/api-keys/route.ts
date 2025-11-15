@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { sign } from 'jsonwebtoken';
 import { z } from 'zod';
+import bcrypt from 'bcryptjs';
+import { getToken, verifyToken } from '@/lib/auth';
 
 // Schema for creating API keys
 const createApiKeySchema = z.object({
@@ -10,19 +12,41 @@ const createApiKeySchema = z.object({
   expiresAt: z.string().datetime().optional(),
 });
 
+// Helper function to get authenticated user
+async function getAuthenticatedUser(request: NextRequest) {
+  const token = getToken(request);
+  if (!token) return null;
+
+  const decoded = verifyToken(token);
+  if (!decoded) return null;
+
+  const user = await db.user.findUnique({
+    where: { id: decoded.userId },
+    select: { id: true, role: true, isActive: true },
+  });
+
+  return user?.isActive ? decoded : null;
+}
+
 export async function GET(request: NextRequest) {
   try {
-    // Get all API keys for the authenticated user
-    // In a real app, this would be based on the authenticated user from the JWT token
+    const authUser = await getAuthenticatedUser(request);
+    if (!authUser) {
+      return NextResponse.json(
+        { error: 'Authentication required' },
+        { status: 401 }
+      );
+    }
+
+    // Get API keys for the authenticated user only
     const apiKeys = await db.apiKey.findMany({
       where: {
-        // In a real app: userId: authenticatedUserId
-        // For now, getting all keys for demo purposes
+        userId: authUser.userId,
       },
       select: {
         id: true,
         name: true,
-        key: true, // In a real app, you wouldn't return the actual key here
+        key: false, // Never return the actual API key (now hashed anyway)
         isActive: true,
         createdAt: true,
         lastUsed: true,
@@ -56,27 +80,32 @@ export async function POST(request: NextRequest) {
     
     // Generate a secure API key
     const apiKey = `crm_${Math.random().toString(36).substring(2, 15)}_${Math.random().toString(36).substring(2, 15)}`;
-    
-    // In a real app, you would hash the API key before storing it
-    // and only return the plain text to the user once during creation
-    
+
+    // Hash the API key before storing it
+    const hashedApiKey = await bcrypt.hash(apiKey, 12);
+
+    // Create a deterministic lookup key (first 8 characters of the API key for efficient lookup)
+    // This makes it possible to find the API key efficiently without checking all keys
+    const lookupKey = apiKey.substring(0, 8);
+
     const newApiKey = await db.apiKey.create({
       data: {
         name,
-        key: apiKey, // In a real app, store the hashed version
+        key: hashedApiKey, // Store hashed version
+        lookupKey: lookupKey, // Store lookup key for efficient retrieval
         permissions: permissions ? JSON.stringify(permissions) : '["read", "write"]',
         expiresAt: expiresAt ? new Date(expiresAt) : null,
         userId: 'default-user-id', // In a real app, this comes from authentication
         isActive: true,
       }
     });
-    
+
     // Return the API key to the user (this should only happen once)
     return NextResponse.json({
       apiKey: {
         id: newApiKey.id,
         name: newApiKey.name,
-        key: apiKey, // This is the actual API key the user needs
+        key: apiKey, // Return plain text to user only on creation
         permissions: (() => {
           try {
             return JSON.parse(newApiKey.permissions);

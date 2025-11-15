@@ -60,10 +60,15 @@ async function createDefaultUser() {
     console.log('Successfully created default agent with ID:', defaultAgent.id);
 
     // Create an API key for the default agent
+    const apiKeyString = 'sk_default_api_key_for_testing_12345';
+    const hashedApiKey = await bcrypt.hash(apiKeyString, 12);
+    const lookupKey = apiKeyString.substring(0, 8); // Use first 8 chars for lookup
+
     const apiKey = await db.apiKey.create({
       data: {
         name: 'Default API Key',
-        key: 'sk_default_api_key_for_testing_12345', // In production, generate a secure random key
+        key: hashedApiKey, // Store hashed key
+        lookupKey: lookupKey, // Store lookup key for efficient retrieval
         permissions: JSON.stringify(['read', 'write', 'admin']),
         userId: adminUser.id,
         agentId: defaultAgent.id,

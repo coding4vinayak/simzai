@@ -3,6 +3,7 @@ import { db } from '@/lib/db';
 import { getToken, verifyToken } from '@/lib/auth';
 import { z } from 'zod';
 import { randomBytes } from 'crypto';
+import bcrypt from 'bcryptjs';
 
 // Middleware to get authenticated user
 async function getAuthUser(request: NextRequest) {
@@ -28,34 +29,51 @@ async function getAgentFromApiKey(request: NextRequest) {
   }
 
   const apiKey = authHeader.substring(7);
-  
-  const agent = await db.agent.findFirst({
+
+  // Use the first 8 characters of the API key to efficiently look up the key
+  // This assumes the lookupKey is the first 8 characters of the original API key
+  const lookupKey = apiKey.substring(0, 8);
+
+  // Find the API key using the lookup key for efficient retrieval
+  const apiKeyRecord = await db.apiKey.findFirst({
     where: {
+      lookupKey: lookupKey,
       isActive: true,
-      apiKeys: {
-        some: {
-          key: apiKey,
-          isActive: true,
-        },
-      },
     },
     include: {
-      user: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
-        },
-      },
-      apiKeys: {
-        where: { isActive: true },
-        orderBy: { createdAt: 'desc' },
-        take: 1,
-      },
-    },
+      agent: {
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          apiKeys: {
+            where: { isActive: true },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
+        }
+      }
+    }
   });
 
-  return agent;
+  // If we found a key, verify it matches the full provided key
+  if (apiKeyRecord) {
+    const isValid = await bcrypt.compare(apiKey, apiKeyRecord.key);
+    if (isValid && apiKeyRecord.agent) {
+      // Update last used timestamp
+      await db.apiKey.update({
+        where: { id: apiKeyRecord.id },
+        data: { lastUsed: new Date() },
+      });
+      return apiKeyRecord.agent;
+    }
+  }
+
+  return null;
 }
 
 function generateApiKey(): string {
@@ -129,13 +147,16 @@ export async function POST(request: NextRequest) {
     const { name, permissions, expiresAt } = await request.json();
 
     const apiKey = generateApiKey();
+    const hashedApiKey = await bcrypt.hash(apiKey, 12);
+    const lookupKey = apiKey.substring(0, 8);
 
     const newApiKey = await db.apiKey.create({
       data: {
         userId: agent.user.id,
         agentId: agent.id, // Associate the API key with the specific agent
         name: name || `Agent API Key - ${new Date().toISOString()}`,
-        key: apiKey,
+        key: hashedApiKey, // Store hashed version
+        lookupKey: lookupKey, // Store lookup key for efficient retrieval
         permissions: permissions ? JSON.stringify(permissions) : JSON.stringify(['read', 'write']),
         expiresAt: expiresAt ? new Date(expiresAt) : null,
       },
