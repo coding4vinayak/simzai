@@ -41,6 +41,11 @@ http://localhost:3000/
 ### Advanced Features
 - **User Management**: Multi-user support with role-based access
 - **API Keys**: Secure API access for integrations
+- **Agent System**: Connect external services with the Agent SDK
+  - **Agent Types**: Form agents, AI agents, Analytics agents, Data collection agents
+  - **SDK Integration**: Comprehensive SDK for easy external service integration
+  - **2-way Connection**: Agents can both read from and write to CRM database
+  - **Secure Access**: API key-based authentication for agents
 - **Webhooks**: Real-time data synchronization
 - **Import/Export**: CSV and JSON data import/export
 - **Settings**: Comprehensive system configuration

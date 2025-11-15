@@ -1,0 +1,51 @@
+{
+  "name": "z-ai-web-dev-sdk",
+  "version": "1.0.0",
+  "description": "SDK for connecting external agents to the CRM system",
+  "main": "dist/crm-agent-sdk.js",
+  "types": "dist/crm-agent-sdk.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "lint": "eslint src --ext .ts"
+  },
+  "keywords": [
+    "crm",
+    "api",
+    "sdk",
+    "integration",
+    "agent",
+    "customer",
+    "management"
+  ],
+  "author": "CRM Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crm/z-ai-web-dev-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/crm/z-ai-web-dev-sdk/issues"
+  },
+  "homepage": "https://github.com/crm/z-ai-web-dev-sdk#readme",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/axios": "^0.14.0",
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ]
+}

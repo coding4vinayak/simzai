@@ -1,18 +1,19 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/auth-context';
-import { 
-  Users, 
-  TrendingUp, 
-  DollarSign, 
-  Phone, 
-  Mail, 
+import {
+  Users,
+  TrendingUp,
+  DollarSign,
+  Phone,
+  Mail,
   Target,
   Calendar,
   AlertTriangle,
@@ -27,7 +28,8 @@ import {
 } from 'lucide-react';
 
 export default function CRMDashboard() {
-  const { user, token, isAdmin } = useAuth();
+  const { user, token, isAdmin, loading: authLoading } = useAuth();
+  const router = useRouter();
   const [stats, setStats] = useState({
     totalCustomers: 0,
     activeCustomers: 0,
@@ -41,11 +43,21 @@ export default function CRMDashboard() {
   const [recentCustomers, setRecentCustomers] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
-  const [loading, setLoading] = useState(true);
+  const [pageLoading, setPageLoading] = useState(true);
 
   useEffect(() => {
-    fetchDashboardData();
-  }, []);
+    // Redirect to login if user is not authenticated
+    if (!authLoading && !user) {
+      router.push('/login');
+      return;
+    }
+
+    if (user) {
+      fetchDashboardData();
+    } else {
+      setPageLoading(false);
+    }
+  }, [user, authLoading, router]);
 
   const fetchDashboardData = async () => {
     try {
@@ -53,7 +65,7 @@ export default function CRMDashboard() {
       const statsResponse = await fetch('/api/dashboard/stats', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      
+
       if (statsResponse.ok) {
         const statsData = await statsResponse.json();
         setStats(statsData);
@@ -63,7 +75,7 @@ export default function CRMDashboard() {
       const customersResponse = await fetch('/api/customers?limit=5', {
         headers: { 'Authorization': `Bearer ${token}` },
       });
-      
+
       if (customersResponse.ok) {
         const customersData = await customersResponse.json();
         setRecentCustomers(customersData.customers || []);
@@ -71,7 +83,7 @@ export default function CRMDashboard() {
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
     } finally {
-      setLoading(false);
+      setPageLoading(false);
     }
   };
 
@@ -99,12 +111,24 @@ export default function CRMDashboard() {
     customer.company?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  if (loading) {
+  if (authLoading || pageLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading dashboard...</p>
+          <p>Checking authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect happens in useEffect, so if we get here without user, it's a backup
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Redirecting to login...</p>
         </div>
       </div>
     );

@@ -5,11 +5,11 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import { 
-  LayoutDashboard, 
-  Users, 
-  CheckSquare, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Users,
+  CheckSquare,
+  Settings,
   BarChart3,
   LogOut,
   User
@@ -47,29 +47,35 @@ export function Navigation() {
             
             {user && (
               <div className="hidden md:flex space-x-1">
-                {navigation.map((item) => {
-                  // Only show Settings if user is admin
-                  if (item.name === 'Settings' && !isAdmin) {
-                    return null;
-                  }
-                  
-                  const isActive = pathname === item.href;
-                  return (
-                    <Link key={item.name} href={item.href}>
-                      <Button
-                        variant={isActive ? 'secondary' : 'ghost'}
-                        size="sm"
-                        className={cn(
-                          'gap-2',
-                          isActive && 'bg-secondary'
-                        )}
-                      >
-                        <item.icon className="h-4 w-4" />
-                        {item.name}
-                      </Button>
-                    </Link>
-                  );
-                })}
+                {navigation
+                  .filter((item) => {
+                    // Only show Settings if user is admin
+                    if (item.name === 'Settings') {
+                      return isAdmin;
+                    }
+                    return true;
+                  })
+                  .map((item) => {
+                    const isActive = pathname === item.href;
+                    return (
+                      <Link key={item.name} href={item.href}>
+                        <Button
+                          variant={isActive ? 'secondary' : 'ghost'}
+                          size="sm"
+                          className={cn(
+                            'gap-2',
+                            isActive && 'bg-secondary'
+                          )}
+                        >
+                          {item.icon && (() => {
+                            const DynamicIcon = item.icon;
+                            return <DynamicIcon className="h-4 w-4" />;
+                          })()}
+                          {item.name}
+                        </Button>
+                      </Link>
+                    );
+                  })}
               </div>
             )}
           </div>
