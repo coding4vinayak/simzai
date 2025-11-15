@@ -376,12 +376,18 @@ export default function SettingsPage() {
         )}
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="general">General</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="api-keys">API Keys</TabsTrigger>
             <TabsTrigger value="webhooks">Webhooks</TabsTrigger>
             <TabsTrigger value="data">Data</TabsTrigger>
+            {isAdmin && (
+              <TabsTrigger value="admin">
+                <Shield className="h-4 w-4 mr-2" />
+                Admin
+              </TabsTrigger>
+            )}
           </TabsList>
 
           <TabsContent value="general">
@@ -814,6 +820,106 @@ export default function SettingsPage() {
               </Card>
             </div>
           </TabsContent>
+
+          {isAdmin && (
+            <TabsContent value="admin">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="h-5 w-5" />
+                    Administrative Tools
+                  </CardTitle>
+                  <CardDescription>
+                    Advanced tools for system administration and security management
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="space-y-4">
+                      <Button
+                        className="w-full h-20 text-left justify-start p-4"
+                        variant="outline"
+                        onClick={() => window.location.href = '/admin'}
+                      >
+                        <div className="flex items-start gap-4">
+                          <Database className="h-8 w-8 text-blue-500 mt-1" />
+                          <div>
+                            <h3 className="font-semibold">Backup & Recovery</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Create, restore, and manage database backups
+                            </p>
+                          </div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        className="w-full h-20 text-left justify-start p-4"
+                        variant="outline"
+                        onClick={() => window.location.href = '/admin'}
+                      >
+                        <div className="flex items-start gap-4">
+                          <Activity className="h-8 w-8 text-green-500 mt-1" />
+                          <div>
+                            <h3 className="font-semibold">Security Monitoring</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Monitor security events and login attempts
+                            </p>
+                          </div>
+                        </div>
+                      </Button>
+                    </div>
+
+                    <div className="space-y-4">
+                      <Button
+                        className="w-full h-20 text-left justify-start p-4"
+                        variant="outline"
+                        onClick={() => window.location.href = '/admin'}
+                      >
+                        <div className="flex items-start gap-4">
+                          <Server className="h-8 w-8 text-purple-500 mt-1" />
+                          <div>
+                            <h3 className="font-semibold">System Health</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Monitor data integrity and system status
+                            </p>
+                          </div>
+                        </div>
+                      </Button>
+
+                      <Button
+                        className="w-full h-20 text-left justify-start p-4"
+                        variant="outline"
+                        onClick={() => window.location.href = '/admin'}
+                      >
+                        <div className="flex items-start gap-4">
+                          <Shield className="h-8 w-8 text-red-500 mt-1" />
+                          <div>
+                            <h3 className="font-semibold">Advanced Security</h3>
+                            <p className="text-sm text-muted-foreground">
+                              Configure security policies and access controls
+                            </p>
+                          </div>
+                        </div>
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 p-4 bg-muted rounded-lg">
+                    <h4 className="font-semibold mb-2">Direct Access</h4>
+                    <p className="text-sm text-muted-foreground mb-4">
+                      You can access the full admin dashboard directly using the navigation menu.
+                    </p>
+                    <Button
+                      variant="default"
+                      onClick={() => window.location.href = '/admin'}
+                    >
+                      Go to Admin Dashboard
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
         </Tabs>
       </div>
     </div>

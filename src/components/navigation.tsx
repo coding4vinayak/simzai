@@ -76,6 +76,21 @@ export function Navigation() {
                       </Link>
                     );
                   })}
+                {isAdmin && (
+                  <Link href="/admin">
+                    <Button
+                      variant={pathname === '/admin' ? 'secondary' : 'ghost'}
+                      size="sm"
+                      className={cn(
+                        'gap-2',
+                        pathname === '/admin' && 'bg-secondary'
+                      )}
+                    >
+                      <Settings className="h-4 w-4" />
+                      Admin
+                    </Button>
+                  </Link>
+                )}
               </div>
             )}
           </div>
